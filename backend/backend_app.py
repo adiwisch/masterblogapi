@@ -12,7 +12,43 @@ POSTS = [
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
+    # check for sorting parameters
+    sort = request.args.get('sort')
+    if sort:
+        if sort not in ["title", "content"]:
+            return jsonify({
+                "message": f"Sorting only supported for 'title' and 'content'."
+            }), 400
+        direction = request.args.get('direction')
+        if direction:
+            if direction not in ["asc", "desc"]:
+                return jsonify({
+                    "message": f"Direction can only be 'asc' or 'desc'."
+                }), 400
+        else:
+            direction = "asc"
+        sorted_posts = sorted(POSTS, key=lambda post: post[sort].lower(), reverse=(direction=="desc"))
+        return jsonify(sorted_posts)
+
     return jsonify(POSTS)
+
+
+@app.route('/api/posts/search', methods=['GET'])
+def search_posts():
+    title = request.args.get('title', '').lower()
+    content = request.args.get('content', '').lower()
+
+    results = []
+
+    for post in POSTS:
+        title_matches = title and title in post['title'].lower()
+        content_matches = content and content in post['content'].lower()
+
+        if (not title or title_matches) and (not content or content_matches):
+            results.append(post)
+
+    return jsonify(results)
+
 
 
 @app.route('/api/posts', methods=['POST'])
