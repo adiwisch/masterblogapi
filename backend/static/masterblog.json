@@ -1,0 +1,259 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Masterblog API",
+    "version": "1.0.0",
+    "description": "API for managing blog posts."
+  },
+  "host": "localhost:5002",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "tags": [
+    {
+      "name": "Post",
+      "description": "Post API - CRUD and Search"
+    }
+  ],
+  "paths": {
+    "/api/posts": {
+      "get": {
+        "summary": "Returns all posts",
+        "description": "Returns all blog posts. Optional query parameters allow sorting by title or content.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Field to sort by.",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "title",
+              "content"
+            ]
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "Sort direction. Defaults to asc.",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/BlogPost"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid sorting parameter"
+          }
+        }
+      },
+      "post": {
+        "summary": "Creates a new post",
+        "description": "Creates a blog post. Both title and content are required. The ID is generated automatically.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/NewBlogPost"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Post created successfully",
+            "schema": {
+              "$ref": "#/definitions/BlogPost"
+            }
+          },
+          "400": {
+            "description": "Missing required fields"
+          }
+        }
+      }
+    },
+    "/api/posts/search": {
+      "get": {
+        "summary": "Search posts",
+        "description": "Searches blog posts by title and/or content. If both parameters are provided, both criteria must match.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "name": "title",
+            "in": "query",
+            "description": "Search term for the post title.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "content",
+            "in": "query",
+            "description": "Search term for the post content.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results. An empty array is returned if no posts match.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/BlogPost"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/posts/{post_id}": {
+      "parameters": [
+        {
+          "name": "post_id",
+          "in": "path",
+          "description": "ID of the blog post.",
+          "required": true,
+          "type": "integer"
+        }
+      ],
+      "delete": {
+        "summary": "Deletes a post",
+        "description": "Deletes the blog post with the specified ID.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Post"
+        ],
+        "responses": {
+          "200": {
+            "description": "Post deleted successfully"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Updates a post",
+        "description": "Updates the title and/or content of an existing blog post. Fields that are not provided remain unchanged.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Fields to update.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateBlogPost"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post updated successfully"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "BlogPost": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "content"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "title": {
+          "type": "string",
+          "example": "First post"
+        },
+        "content": {
+          "type": "string",
+          "example": "This is the first post."
+        }
+      }
+    },
+    "NewBlogPost": {
+      "type": "object",
+      "required": [
+        "title",
+        "content"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "My new post"
+        },
+        "content": {
+          "type": "string",
+          "example": "This is the content of my new post."
+        }
+      }
+    },
+    "UpdateBlogPost": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Updated title"
+        },
+        "content": {
+          "type": "string",
+          "example": "Updated content"
+        }
+      }
+    }
+  }
+}
