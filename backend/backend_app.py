@@ -19,28 +19,17 @@ def get_posts():
 def add_post():
     data = request.get_json()
 
-    title = data["title"]
-    content = data["content"]
-    missing_fields = []
+    datacheck = check_post_contents(data)
 
-    if not data or not data.get('title'):
-        missing_fields.append('title')
-
-    if not data or not data.get('content'):
-        missing_fields.append('content')
-
-    if missing_fields:
-        return jsonify({
-            'error': 'Missing required fields',
-            'missing_fields': missing_fields
-        }), 400
+    if datacheck != "OK":
+        return datacheck
 
     new_id = max((post['id'] for post in POSTS), default=0) + 1
 
     new_post = {
         'id': new_id,
-        'title': title,
-        'content': content,
+        'title': data.get('title'),
+        'content': data.get('content'),
     }
 
     # add new post to existing ones
@@ -67,6 +56,58 @@ def delete_post(post_id):
         return jsonify({
             "message": f"Post with id {post_id} has been deleted successfully."
         }), 200
+
+@app.route('/api/posts/<int:post_id>', methods=['PUT'])
+def update(post_id):
+    """Update an existing blog post or display the form to do so."""
+    # Get the blog post
+    post = get_post_by_id(post_id)
+    data = request.get_json()
+
+    # return error if none found
+    if post is None:
+        return jsonify({
+            "message": f"No post with id {post_id} found."
+        }), 404
+
+    # Update the selected post
+    for blog_post in POSTS:
+        if blog_post['id'] == post_id:
+            if data.get('title') is not None:
+                blog_post['title'] = data.get('title')
+            if data.get('content') is not None:
+                blog_post['content'] = data.get('content')
+            break
+
+    return jsonify({
+        "message": f"Post with id {post_id} has been updated successfully."
+    }), 200
+
+
+def get_post_by_id(post_id):
+    """Return a blog post by its ID - None if no post was found with that ID."""
+
+    return next(
+        (post for post in POSTS if post['id'] == post_id),
+        None
+    )
+
+def check_post_contents(data):
+
+    missing_fields = []
+
+    if not data or not data.get('title'):
+        missing_fields.append('title')
+
+    if not data or not data.get('content'):
+        missing_fields.append('content')
+
+    if missing_fields:
+        return jsonify({
+            'error': 'Missing required fields',
+            'missing_fields': missing_fields
+        }), 400
+    return "OK"
 
 
 if __name__ == '__main__':
